@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment Analysis</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        $(document).ready(function() {
+            $('#csvFile').change(function() {
+                var selectedCsv = $(this).val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/get_products',
+                    data: { csvFile: selectedCsv },
+                    success: function(data) {
+                        $('#productName').empty();
+                        $.each(data, function(index, product) {
+                            $('#productName').append('<option value="' + product + '">' + product + '</option>');
+                        });
+                        $('#productName').show();
+                    }
+                });
+            });
+
+            $('#inputProduct').on('input', function() {
+                var inputText = $(this).val().toLowerCase();
+                if (inputText.length > 0) {
+                    $('#productName').empty();
+                    $.ajax({
+                        type: 'POST',
+                        url: '/get_products',
+                        data: {
+                            csvFile: $('#csvFile').val(),
+                            inputProduct: inputText
+                        },
+                        success: function(data) {
+                            var filteredProducts = data.filter(function(product) {
+                                return product.toLowerCase().startsWith(inputText);
+                            });
+                            $.each(filteredProducts, function(index, product) {
+                                $('#productName').append('<option value="' + product + '">' + product + '</option>');
+                            });
+                            $('#productName').show();
+                        }
+                    });
+                } else {
+                    $('#productName').hide();
+                }
+            });
+
+            $('#productName').change(function() {
+                var selectedProduct = $(this).val();
+                $('#inputProduct').val(selectedProduct);
+            });
+
+            $('#analyze-form').on('submit', function(event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                  // Clear previous results
+                  $('#result').empty();
+                  $('#accuracy').empty();
+
+                var selectedCsv = $('#csvFile').val();
+                var inputProduct = $('#inputProduct').val();
+                var productName = $('#productName').val();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/analyze',
+                    data: {
+                        csvFile: selectedCsv,
+                        inputProduct: inputProduct,
+                        productName: productName
+                    },
+                    success: function(data) {
+                        $('#result').empty();
+                        $('#accuracy').text('Accuracy: ' + data.accuracy.toFixed(2) + '%');
+                        $.each(data.sentiment_counts, function(sentiment, count) {
+                            $('#result').append('<p>' + sentiment + ' reviews: ' + count + '</p>');
+                        });
+                        updatePieChart(data.sentiment_counts);
+                    }
+                });
+            });
+
+            function updatePieChart(sentimentCounts) {
+                var total = Object.values(sentimentCounts).reduce((a, b) => a + b, 0);
+                var colors = {
+                    'positive': '#66c2a5',  // greenish
+                    'negative': '#fc8d62',  // orangish
+                    'neutral': '#8da0cb'    // bluish
+                };
+
+                var data = {
+                    labels: Object.keys(sentimentCounts),
+                    datasets: [{
+                        data: Object.values(sentimentCounts),
+                        backgroundColor: Object.keys(sentimentCounts).map(sentiment => colors[sentiment])
+                    }]
+                };
+
+                // Remove the old canvas
+                $('#pieChartContainer').empty();
+
+                // Create a new canvas
+                $('#pieChartContainer').append('<canvas id="pieChart"></canvas>');
+
+                var ctx = document.getElementById('pieChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        title: {
+                            display: true,
+                            text: 'Sentiment Analysis Results'
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+   
+    <video autoplay muted loop id="video-background">
+        <source src="{{ url_for('static', filename='vdo5.mp4') }}" type="video/mp4">
+    </video>
+    <div class="container">
+        <img src="{{ url_for('static', filename='flipkartimg.png') }}" alt="Logo">
+        <h1>Sentiment Analysis</h1>
+        <label for="csvFile">Select Product:</label>
+        <select id="csvFile" name="csvFile">
+            <option value="Electronics">Electronic Devices</option>
+            <option value="new_products">Other Products</option>
+        </select>
+        <br><br>
+        <form id="analyze-form">
+            <div id="inputProductContainer">
+                <label for="inputProduct">Enter product name:</label>
+                <input type="text" id="inputProduct" name="inputProduct" placeholder="Enter the product name">
+                <select id="productName" name="productName"></select>
+            </div>
+            <br><br>
+            <button type="submit" id="submit">Analyze</button>
+        </form>
+        <h2>Results:</h2>
+        <div id="result"></div>
+       
+        <!-- Add a container for the pie chart -->
+        <div id="pieChartContainer" style="height:500px;width:500px;margin-top:230px">
+            <canvas id="pieChart" styles="height:500px;width:500px"></canvas>
+        </div>
+        <div id="accuracy"></div>
+    </div>
+</body>
+</html>

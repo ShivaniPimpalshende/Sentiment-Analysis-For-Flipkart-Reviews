@@ -1,0 +1,73 @@
+body{
+     color:rgb(15, 2, 33);
+    font-size: 25px;
+    flex-wrap: wrap;
+   /* background-color: rgb(162, 192, 233); */
+  
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    /* padding-top: 0.2rem; */
+}
+
+
+.container{
+   font-size: larger;
+    width: 610px;
+    height: 900px;
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background for better readability */
+    box-shadow:14px 21px 91px 21px rgba(124, 118, 118, 0.8) ; 
+   
+   
+}
+
+
+#inputProduct {
+    width: 400px; 
+    padding: 8px; 
+    font-size: 14px;
+}
+#csvFile{
+    width:250;
+    padding:5px;
+    font-size:14px ;
+}
+#productName{
+    font-size: 13px;
+    
+}
+#submit{
+    font-size: 16px;
+    padding: 5px;
+    
+}
+#accuracy{
+    margin-left: 900px;
+    font-weight: 600;
+   
+}
+
+
+#video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  
+}
+
+
+h1, h2 {
+    text-align: center;
+}
+
+form {
+    text-align: center;
+}
